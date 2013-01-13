@@ -35,7 +35,7 @@ $f.consoleLog = function(){
             return this.console.log(args.join(' '));
         }
     }
-};
+}
 
 $f.mixin = function(SubClass, superObj, SuperClass){
     var k;
@@ -51,12 +51,12 @@ $f.mixin = function(SubClass, superObj, SuperClass){
             }
         }
     }
-};
+}
 $f.inherit = function(SubClass, superObj, SuperClass){
     SubClass.prototype = superObj;
     SubClass.prototype.__myClass__ = SubClass;
     $f.mixin(SubClass, null, SuperClass);
-};
+}
 
 /**
  * Return coordinates that is created by dividing large square by same small square
@@ -75,13 +75,26 @@ $f.squaring = function(partSize, targetSize, borderWidth) {
         }
     }
     return coords;
-};
+}
+
+$f.escapeHTML = function(str){
+  str = str.replace(/>/g, '&gt;');
+  str = str.replace(/</g, '&lt;');
+  str = str.replace(/&/g, '&amp;');
+  str = str.replace(/"/g, '&quot;');
+  str = str.replace(/'/g, '&#039;');
+  return str;
+}
+
+$f.nl2br = function(str){
+  return str.replace(/(?:\r\n|\n|\r)/g, '<br />');
+}
 
 $f.argumentsToArray = function(args){
     var arr = [], i;
     for (i = 0; i < args.length; i += 1) { arr.push(args[i]) }
     return arr;
-};
+}
 
 $f.ReceivableOptionsMixin = (function(){
     var cls = function(){
@@ -123,7 +136,7 @@ $f.ReceivableOptionsMixin = (function(){
 $d = function(){
     if ($e.debug === false) return;
     return $f.consoleLog.apply(this, arguments);
-};
+}
 
 
 /**
@@ -133,6 +146,7 @@ $a = {
 //{{{
   player: undefined,
   screen: undefined,
+  statusbar: undefined,
   listbox: undefined,
 
   catchError: function(err){
@@ -357,7 +371,14 @@ $a.Statusbar = (function(){
 
   cls.prototype.draw = function(){
     $a.Sprite.prototype.draw.apply(this);
-    this._mixButtonView.addClass('mix_button_inactive');
+
+    if ($a.emoticons.match() === null) {
+      this._mixButtonView.removeClass('mix_button_active')
+        .addClass('mix_button_inactive');
+    } else {
+      this._mixButtonView.removeClass('mix_button_inactive')
+        .addClass('mix_button_active');
+    }
 
     this._remainingEmoticonView.text(
       'あと ' + $a.emoticons.getNotFoundCount()  +  ' 体'
@@ -512,6 +533,7 @@ $a.Listitem = (function(){
   cls.POS = [0, 0];
   cls.SIZE = [80, 80];
   cls.ZINDEXES = {
+    CLOSING_LINE: 100,
     TITLE: 10,
     ART_TEXT: 1
   };
@@ -523,6 +545,19 @@ $a.Listitem = (function(){
         backgroundColor: '#FFF',
         cursor: 'pointer'
       })
+      .on('mousedown', { self:self }, __ONMOUSEDOWN)
+    ;
+
+    self._closingLineView = $('<div />')
+      .hide()
+      .css({
+        position: 'absolute',
+        width: cls.SIZE[0] - 8,
+        height: cls.SIZE[1] - 8,
+        zIndex: cls.ZINDEXES.CLOSING_LINE,
+        border: '4px solid #FF9933'//,
+      })
+      .appendTo(self._view)
     ;
 
     self._artTextView = $('<div />').css({
@@ -553,14 +588,29 @@ $a.Listitem = (function(){
     $a.Sprite.prototype.draw.apply(this);
 
     if (this._emoticon.isFound) {
-      this._artTextView.text(this._emoticon.artText);
+      this._artTextView.html($f.nl2br($f.escapeHTML(this._emoticon.artText)));
       this._titleView.text(this._emoticon.emoticonName);
     } else {
       this._artTextView.text('\uff1f');
       this._titleView.hide();
     };
 
+    if (this._emoticon.isSelected) {
+      this._closingLineView.show();
+    } else {
+      this._closingLineView.hide();
+    };
+
     this.getView().show();
+  };
+
+  function __ONMOUSEDOWN(evt){
+    var self = evt.data.self;
+    if (self._emoticon.isSelectable === false) return false;
+    self._emoticon.isSelected = !self._emoticon.isSelected;
+    self.draw();
+    $a.statusbar.draw();
+    return false;
   };
 
   cls.create = function(emoticonOrNull){
@@ -582,73 +632,65 @@ $a.Emoticons = (function(){
   };
 
   cls.__RAW_DATA = [
-    // なかぐろ
-    ['material', 1, [], '', '\u30fb'],
-    // 白丸
-    ['material', 2, [], '', '\u309c'],
-    // ^
-    ['material', 3, [], '', '^'],
-    // なき
-    ['material', 4, [], '', 'T'],
-    // 伏し目
-    ['material', 5, [], '', '-'],
-    // きりっ
-    ['material', 6, [], '', '`\u00b4'],
-    // しゅん
-    ['material', 7, [], '', '\u00b4`'],
-    // ターンエー
-    ['material', 11, [], '', '\u2200'],
-    // への字口
-    ['material', 12, [], '', '\u0414'],
-    // ふぐり
-    ['material', 13, [], '', '\u03c9'],
-    // 〜
-    ['material', 14, [], '', '\uff5e'],
-    // ニヤリ
-    ['material', 15, [], '', '\u30fc'],
-    // ノ
-    ['material', 31, [], '', 'ノ'],
-    // ゆびさし
-    ['material', 32, [], '', 'm9'],
-    // ！
-    ['material', 51, [], '', '!'],
-    // 汗
-    ['material', 52, [], '', ';'],
-    // がーん
-    ['material', 53, [], '', '((('],
-    // がくがく
-    ['material', 54, [], '', '\u03a3'],
-    // ぽっ
-    ['material', 55, [], '', '*'],
+    ['material', 'nakaguro', [], '', '\u30fb'],
+    ['material', 'shiromaru', [], '', '\u309c'],
+    ['material', '^', [], '', '^'],
+    ['material', 'T', [], '', 'T'],
+    ['material', '-', [], '', '-'],
+    ['material', 'kiri', [], '', '`\u00b4'],
+    ['material', 'shun', [], '', '\u00b4`'],
+    ['material', 'turna', [], '', '\u2200'],
+    ['material', 'anguri', [], '', '\u0414'],
+    ['material', 'huguri', [], '', '\u03c9'],
+    ['material', '~', [], '', '\uff5e'],
+    ['material', 'niyari', [], '', '\u30fc'],
+    ['material', 'no', [], '', 'ノ'],
+    ['material', 'tsu', [], '', 'つ'],
+    ['material', 'm9', [], '', 'm9'],
+    ['material', '!', [], '', '!'],
+    ['material', ';', [], '', ';'],
+    ['material', '(((', [], '', '((('],
+    ['material', 'gan', [], '', '\u03a3'],
+    ['material', '*', [], '', '*'],
 
     // Commons
-    ['common', 101, [1, 11], 'イイ！', '(・∀・)'],
+    ['common', 'ii', ['nakaguro', 'turna'], 'イイ！', '(・∀・)'],
+    ['common', 'ahya', ['shiromaru', 'turna'], 'アヒャ', '(ﾟ∀ﾟ)'],
+
+    // Rares
+    ['rare', 'joruju', ['shiromaru', 'turna', 'tsu'], 'ジョルジュ長岡',
+      '　 _ 　∩\n(　ﾟ∀ﾟ)彡\n　⊂彡'],
   ];
 
   function __INITIALIZE(self){
-    _.each(cls.__RAW_DATA, function(rawData){
-      self._addDataFromRawData(rawData);
+    _.each(cls.__RAW_DATA, function(rawData, idx){
+      self._addDataFromRawData(rawData, idx);
     });
-  };
+  }
 
-  cls.prototype._addDataFromRawData = function(rawData){
-    var id = rawData[1].toString();
-    var materialIds = rawData[2].slice();
-    if (id in this._data) {
-      throw new Error('Emoticons._addDataFromRawData: Duplicated id');
+  cls.prototype._addDataFromRawData = function(rawData, order){
+    var category = rawData[0];
+    var key = rawData[1].toString();
+    var materials = rawData[2].slice();
+    if (key in this._data) {
+      throw new Error('Emoticons._addDataFromRawData: Duplicated key');
     }
-    this._data[id] = {
-      id: id,
-      category: rawData[0],
-      materialIds: materialIds,
+    this._data[key] = {
+      key: key,
+      order: order,
+      category: category,
+      materials: materials,
       emoticonName: rawData[3],
       artText: rawData[4],
-      isFound: (materialIds.length === 0)//,
+      isFound: (materials.length === 0),
+      isSelectable: (category === 'material'),
+      isSelected: false//,
     };
-  };
+  }
 
   cls.prototype.getDataList = function(conditions){
-    var category = conditions.category || null;
+    conds = conditions || {};
+    var category = conds.category || null;
 
     var filtered = _.filter(this._data, function(dat, id){
       if (category !== null && category !== dat.category) {
@@ -659,21 +701,45 @@ $a.Emoticons = (function(){
     return _.map(filtered, function(dat){
       return dat;
     }).sort(function(a, b){
-      return parseInt(a.id, 10) - parseInt(b.id, 10);
+      return parseInt(a.order, 10) - parseInt(b.order, 10);
     });
-  };
+  }
 
   cls.prototype.getNotFoundCount = function(){
     return _.filter(this._data, function(dat){
       return dat.isFound === false;
     }).length;
-  };
+  }
+
+  cls.prototype._getSelectedKeys = function(){
+    var filtered = _.filter(this._data, function(emoticon){
+      return emoticon.isSelected;
+    });
+    return _.map(filtered, function(emoticon){
+      return emoticon.key;
+    });
+  }
+
+  cls.prototype.match = function(){
+    var selectedKeys = this._getSelectedKeys();
+    var matches = _.filter(this.getDataList(), function(data){
+      if (
+        data.isFound === false &&
+        _.isEqual(selectedKeys.sort(), data.materials.sort())
+      ) {
+        return true;
+      }
+      return false;
+    });
+    if (matches.length === 0) return null;
+    return matches[0];
+  }
 
   cls.create = function(){
       var obj = new this();
       __INITIALIZE(obj);
       return obj;
-  };
+  }
 
   return cls;
 //}}}
