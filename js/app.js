@@ -138,7 +138,10 @@ $a = {
     catchError: function(err){
         $d('error =', err);
         $d('error.stack =', err.stack);
-    }
+    },
+    fontSize: function(px){
+      return px;
+    }//,
 //}}}
 };
 
@@ -346,7 +349,7 @@ $a.Listbox = (function(){
   cls.prototype.drawSwitchingPage = function(){
     _.each(this._pages, function(page){
       page.getView().hide();
-    })
+    });
     var page = this.getCurrentPage();
     page.draw();
     page.getView().show();
@@ -427,7 +430,11 @@ $a.Listitem = (function(){
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   cls.POS = [0, 0];
-  cls.SIZE = [80, 80]
+  cls.SIZE = [80, 80];
+  cls.ZINDEXES = {
+    TITLE: 10,
+    ART_TEXT: 1
+  };
 
   function __INITIALIZE(self){
     self._view
@@ -437,13 +444,40 @@ $a.Listitem = (function(){
         cursor: 'pointer'
       })
     ;
+
+    self._artTextView = $('<div />').css({
+      width: '100%',
+      height: cls.SIZE[1] + 'px',
+      lineHeight: cls.SIZE[1] + 'px',
+      zIndex: cls.ZINDEXES.ART_TEXT,
+      fontSize: $a.fontSize(16) + 'px',
+      textAlign: 'center',
+      color: '#000'//,
+    }).appendTo(self._view);
+
+    self._titleView = $('<div />').css({
+      position: 'absolute',
+      bottom: 0,
+      width: '100%',
+      height: '16px',
+      lineHeight: '16px',
+      zIndex: cls.ZINDEXES.TITLE,
+      fontSize: $a.fontSize(10) + 'px',
+      textAlign: 'center',
+      color: '#666'//,
+    }).appendTo(self._view);
   }
 
   cls.prototype.draw = function(){
     if (this._emoticon === null) return;
     $a.Sprite.prototype.draw.apply(this);
 
-
+    if (this._emoticon.isFound) {
+      this._artTextView.text(this._emoticon.artText);
+      this._titleView.text(this._emoticon.emoticonName);
+    } else {
+      this._titleView.hide();
+    };
 
     this.getView().show();
   }
@@ -488,7 +522,7 @@ $a.Emoticons = (function(){
         category: rawData[0],
         materialIds: materialIds,
         emoticonName: rawData[3],
-        emoticonText: rawData[4],
+        artText: rawData[4],
         isFound: (materialIds.length === 0)//,
       };
     }
