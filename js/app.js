@@ -133,6 +133,7 @@ $a = {
 //{{{
     player: undefined,
     screen: undefined,
+    listbox: undefined,
 
     catchError: function(err){
         $d('error =', err);
@@ -304,6 +305,7 @@ $a.Statusbar = (function(){
 $a.Listbox = (function(){
 //{{{
   var cls = function(){
+    this._pages = {};
   }
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
@@ -311,15 +313,103 @@ $a.Listbox = (function(){
   //   Max size = 465 x 465(496 - Startusbar 34)
   //   64 * 6 + 10 * 5 = 434
   //   (465 - 434) / 2 = 15.5(top or left)
-  //  top = 15.5 + 34 = 49.5
-  //  left = 15.5
+  //   top = 15.5 + 34 = 49.5
+  //   left = 15.5
   cls.POS = [49, 15];
   cls.SIZE = [434, 434]
 
   function __INITIALIZE(self){
     self._view.css({
-      backgroundColor: '#FFF' // Tmp
     });
+  }
+
+  cls.prototype.setPage = function(pageKey, data){
+    var obj = $a.Listpage.create(data)
+    this._pages[pageKey] = obj;
+    this.getView().append(obj.getView());
+    obj.draw();
+  }
+
+  cls.prototype.switchPage = function(pageKey){
+    _.each(this._pages, function(page, pageKey){
+      page.getView().hide();
+    })
+    this._pages[pageKey].getView().show();
+  }
+
+  cls.create = function(){
+    var obj = $a.Sprite.create.apply(this);
+    __INITIALIZE(obj);
+    return obj;
+  }
+
+  return cls;
+//}}}
+}());
+
+
+$a.Listpage = (function(){
+//{{{
+  var cls = function(){
+    this._items = [];
+  }
+  $f.inherit(cls, new $a.Sprite(), $a.Sprite);
+
+  cls.POS = [0, 0];
+  cls.SIZE = $a.Listbox.SIZE.slice();
+  cls.ITEM_COUNT = 36;
+
+  function __INITIALIZE(self){
+
+    self._initializeListitems();
+
+    self._view
+      .hide()
+      .css({
+      })
+    ;
+  }
+
+  cls.prototype._initializeListitems = function(){
+    var self = this;
+    var positions = $f.squaring($a.Listitem.SIZE, this.getSize(), 10);
+    _.times(cls.ITEM_COUNT, function(i){
+      var item = $a.Listitem.create();
+      item.setPos(positions[i]);
+      self._items.push(item);
+      self.getView().append(item.getView());
+      item.draw();
+      item.getView().show();
+    });
+  }
+
+  cls.create = function(){
+    var obj = $a.Sprite.create.apply(this);
+    __INITIALIZE(obj);
+    return obj;
+  }
+
+  return cls;
+//}}}
+}());
+
+
+$a.Listitem = (function(){
+//{{{
+  var cls = function(){
+  }
+  $f.inherit(cls, new $a.Sprite(), $a.Sprite);
+
+  cls.POS = [0, 0];
+  cls.SIZE = [64, 64]
+
+  function __INITIALIZE(self){
+    self._view
+      .hide()
+      .css({
+        backgroundColor: '#FFF'
+      })
+    ;
   }
 
   cls.create = function(){
@@ -347,6 +437,20 @@ $a.init = function(){
   $a.screen.getView().append($a.statusbar.getView());
 
   $a.listbox = $a.Listbox.create();
+
+  // Materials
+  $a.listbox.setPage('material', {
+  });
+
+  // Commons
+  $a.listbox.setPage('common', {
+  });
+
+  // Rares
+  // Extra rares
+  // Super rares
+
+  $a.listbox.switchPage('material');
   $a.listbox.draw();
   $a.screen.getView().append($a.listbox.getView());
 
