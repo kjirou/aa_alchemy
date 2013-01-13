@@ -321,6 +321,7 @@ $a.Statusbar = (function(){
         fontSize: $a.fontSize(16)//,
       })
       .text('合成')
+      .on('mousedown', { self:self }, __ONMIX)
       .appendTo(self.getView())
     ;
 
@@ -390,6 +391,19 @@ $a.Statusbar = (function(){
     });
     this._pageLinkViews[$a.listbox.getCurrentCategory()].addClass('page_link_current')
   };
+
+  function __ONMIX(evt){
+    var self = evt.data.self;
+    var matched = $a.emoticons.match();
+    if (matched === null) return false;
+
+    matched.isFound = true;
+    $a.emoticons.resetSelects();
+    self.draw();
+    $a.listbox.getCurrentPage().draw();
+
+    return false;
+  }
 
   cls.create = function(){
     var obj = $a.Sprite.create.apply(this);
@@ -563,9 +577,9 @@ $a.Listitem = (function(){
     self._artTextView = $('<div />').css({
       width: '100%',
       height: cls.SIZE[1] + 'px',
-      lineHeight: cls.SIZE[1] + 'px',
+      lineHeight: 1,
       zIndex: cls.ZINDEXES.ART_TEXT,
-      fontSize: $a.fontSize(16) + 'px',
+      fontSize: $a.fontSize(14) + 'px',
       textAlign: 'center',
       color: '#000'//,
     }).appendTo(self._view);
@@ -590,6 +604,7 @@ $a.Listitem = (function(){
     if (this._emoticon.isFound) {
       this._artTextView.html($f.nl2br($f.escapeHTML(this._emoticon.artText)));
       this._titleView.text(this._emoticon.emoticonName);
+      this._titleView.show();
     } else {
       this._artTextView.text('\uff1f');
       this._titleView.hide();
@@ -733,6 +748,12 @@ $a.Emoticons = (function(){
     });
     if (matches.length === 0) return null;
     return matches[0];
+  }
+
+  cls.prototype.resetSelects = function(){
+    _.each(this._data, function(emoticon){
+      emoticon.isSelected = false;
+    });
   }
 
   cls.create = function(){
