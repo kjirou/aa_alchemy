@@ -132,6 +132,7 @@ $d = function(){
 $a = {
 //{{{
     player: undefined,
+    screen: undefined,
 
     catchError: function(err){
         $d('error =', err);
@@ -247,35 +248,87 @@ $a.Sprite = (function(){
 
 $a.Screen = (function(){
 //{{{
-    var cls = function(){
-    }
-    $f.inherit(cls, new $a.Sprite(), $a.Sprite);
+  var cls = function(){
+  }
+  $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
-    cls.ZINDEXES = {
-        // These z-indexes are set for dragged content showing on the top.
-        // But, for example, it is imperfect in when Story is dragging over the MemberBoard
-        MASTER_STORY_LIST_BOARD: 100,
-        MEMBERS_BOARD: 110,
-        RECRUITMENT_BOARD: 120,
-        BOARD: 1//,
-    };
+  cls.ZINDEXES = {
+  };
 
-    cls.POS = [0, 0];
-    cls.SIZE = $e.jsdoitSize.slice(); // Must sync to CSS
+  cls.POS = [0, 0];
+  cls.SIZE = $e.jsdoitSize.slice(); // Must sync to CSS
 
-    function __INITIALIZE(self){
-        self._view.css({
-            backgroundColor: '#EEE' // Tmp
-        });
-    }
+  function __INITIALIZE(self){
+    self._view.css({
+      backgroundColor: '#EEE' // Tmp
+    });
+  }
 
-    cls.create = function(){
-        var obj = $a.Sprite.create.apply(this);
-        __INITIALIZE(obj);
-        return obj;
-    }
+  cls.create = function(){
+    var obj = $a.Sprite.create.apply(this);
+    __INITIALIZE(obj);
+    return obj;
+  }
 
-    return cls;
+  return cls;
+//}}}
+}());
+
+
+$a.Statusbar = (function(){
+//{{{
+  var cls = function(){
+  }
+  $f.inherit(cls, new $a.Sprite(), $a.Sprite);
+
+  cls.POS = [0, 0];
+  cls.SIZE = [$a.Screen.SIZE[0], 34];
+
+  function __INITIALIZE(self){
+    self._view.css({
+      backgroundColor: '#333' // Tmp
+    });
+  }
+
+  cls.create = function(){
+    var obj = $a.Sprite.create.apply(this);
+    __INITIALIZE(obj);
+    return obj;
+  }
+
+  return cls;
+//}}}
+}());
+
+
+$a.Listbox = (function(){
+//{{{
+  var cls = function(){
+  }
+  $f.inherit(cls, new $a.Sprite(), $a.Sprite);
+
+  // Calulation:
+  //   Max size = 465 x 465(496 - Startusbar 34)
+  //   64 * 6 + 10 * 5 = 434
+  //   (465 - 434) / 2 = 15.5(top or left)
+  //  top = 15.5 + 34 = 49.5
+  //  left = 15.5
+  cls.POS = [49, 15];
+  cls.SIZE = [434, 434]
+
+  function __INITIALIZE(self){
+    self._view.css({
+      backgroundColor: '#FFF' // Tmp
+    });
+  }
+
+  cls.create = function(){
+    var obj = $a.Sprite.create.apply(this);
+    __INITIALIZE(obj);
+    return obj;
+  }
+
+  return cls;
 //}}}
 }());
 
@@ -289,10 +342,18 @@ $a.init = function(){
   $a.screen.draw();
   $('#game_container').append($a.screen.getView());
 
+  $a.statusbar = $a.Statusbar.create();
+  $a.statusbar.draw();
+  $a.screen.getView().append($a.statusbar.getView());
+
+  $a.listbox = $a.Listbox.create();
+  $a.listbox.draw();
+  $a.screen.getView().append($a.listbox.getView());
+
 //}}}
 }
 
 
 $(document).ready(function(){
-    $a.init();
+  $a.init();
 });
