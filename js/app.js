@@ -16,7 +16,7 @@ $e = {
 
 
 $c = {
-  VERSION: '0.1.0',
+  VERSION: '1.0.0',
   CSS_PREFIX: 'aal-'
 };
 
@@ -282,6 +282,8 @@ $a.Screen = (function(){
 $a.Statusbar = (function(){
 //{{{
   var cls = function(){
+    /** category:view sets */
+    this._pageLinkViews = undefined;
   }
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
@@ -290,8 +292,82 @@ $a.Statusbar = (function(){
 
   function __INITIALIZE(self){
     self._view.css({
-      backgroundColor: '#333' // Tmp
+      backgroundColor: '#333'
     });
+
+    self._mixButtonView = $('<div />')
+      .addClass('mix_button')
+      .css({
+        position: 'absolute',
+        top: 4,
+        left: 4,
+        width: 80,
+        height: 26,
+        lineHeight: '30px',
+        fontSize: $a.fontSize(16)//,
+      })
+      .text('合成')
+      .appendTo(self.getView())
+    ;
+
+    self._remainingEmoticonView = $('<span />').css({
+      marginLeft: 100,
+      height: cls.SIZE[1] + 'px',
+      lineHeight: cls.SIZE[1] + 'px',
+      fontSize: $a.fontSize(14),
+      color: '#FFF'//,
+    }).appendTo(self.getView())
+
+    self._pageLinksView = $('<div />').css({
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      width: 180,
+      height: '100%'//,
+    }).appendTo(self.getView())
+
+    self._pageLinkViews = {
+      material: self._createPageLinkView('material', '素材'),
+      common: self._createPageLinkView('common', 'コモン'),
+      rare: self._createPageLinkView('rare', 'レア'),
+      superrare: self._createPageLinkView('superrare', '超レア')//,
+    };
+    _.each(self._pageLinkViews, function(view){
+      self._pageLinksView.append(view);
+    });
+  }
+
+  cls.prototype._createPageLinkView = function(category, label){
+    var self = this;
+    return $('<a />')
+      .addClass('page_link')
+      .attr('href', 'javascript:void(0)')
+      .css({
+        lineHeight: cls.SIZE[1] + 'px',
+        fontSize: $a.fontSize(12)
+      })
+      .text(label)
+      .on('mousedown', {}, function(){
+        $a.listbox.switchPage(category);
+        $a.listbox.drawSwitchingPage();
+        self.draw();
+      })
+    ;
+  }
+
+  cls.prototype.draw = function(){
+    $a.Sprite.prototype.draw.apply(this);
+    this._mixButtonView.addClass('mix_button_inactive');
+
+    this._remainingEmoticonView.text(
+      'あと ' + $a.emoticons.getNotFoundCount()  +  ' 体'
+    );
+
+    // Emphasise current page link
+    _.each(this._pageLinkViews, function(view){
+      view.removeClass('page_link_current');
+    });
+    this._pageLinkViews[$a.listbox.getCurrentCategory()].addClass('page_link_current')
   }
 
   cls.create = function(){
@@ -335,6 +411,10 @@ $a.Listbox = (function(){
 
   cls.prototype.switchPage = function(category){
     this._currentCategory = category;
+  }
+
+  cls.prototype.getCurrentCategory = function(){
+    return this._currentCategory;
   }
 
   cls.prototype.getCurrentPage = function(){
@@ -476,6 +556,7 @@ $a.Listitem = (function(){
       this._artTextView.text(this._emoticon.artText);
       this._titleView.text(this._emoticon.emoticonName);
     } else {
+      this._artTextView.text('\uff1f');
       this._titleView.hide();
     };
 
@@ -501,8 +582,47 @@ $a.Emoticons = (function(){
     }
 
     cls.__RAW_DATA = [
-      ['material', 1, [], 'なかぐろ', '\u30fb'],
-      ['material', 2, [], 'ターンエー', '\u2200']//,
+      // なかぐろ
+      ['material', 1, [], '', '\u30fb'],
+      // 白丸
+      ['material', 2, [], '', '\u309c'],
+      // ^
+      ['material', 3, [], '', '^'],
+      // なき
+      ['material', 4, [], '', 'T'],
+      // 伏し目
+      ['material', 5, [], '', '-'],
+      // きりっ
+      ['material', 6, [], '', '`\u00b4'],
+      // しゅん
+      ['material', 7, [], '', '\u00b4`'],
+      // ターンエー
+      ['material', 11, [], '', '\u2200'],
+      // への字口
+      ['material', 12, [], '', '\u0414'],
+      // ふぐり
+      ['material', 13, [], '', '\u03c9'],
+      // 〜
+      ['material', 14, [], '', '\uff5e'],
+      // ニヤリ
+      ['material', 15, [], '', '\u30fc'],
+      // ノ
+      ['material', 31, [], '', 'ノ'],
+      // ゆびさし
+      ['material', 32, [], '', 'm9'],
+      // ！
+      ['material', 51, [], '', '!'],
+      // 汗
+      ['material', 52, [], '', ';'],
+      // がーん
+      ['material', 53, [], '', '((('],
+      // がくがく
+      ['material', 54, [], '', '\u03a3'],
+      // ぽっ
+      ['material', 55, [], '', '*'],
+
+      // Commons
+      ['common', 101, [1, 11], 'イイ！', '(・∀・)'],
     ];
 
     function __INITIALIZE(self){
@@ -543,6 +663,12 @@ $a.Emoticons = (function(){
       });
     }
 
+    cls.prototype.getNotFoundCount = function(){
+      return _.filter(this._data, function(dat){
+        return dat.isFound === false;
+      }).length;
+    }
+
     cls.create = function(){
         var obj = new this();
         __INITIALIZE(obj);
@@ -564,18 +690,13 @@ $a.init = function(){
   $a.screen.draw();
   $('#game_container').append($a.screen.getView());
 
-  $a.statusbar = $a.Statusbar.create();
-  $a.statusbar.draw();
-  $a.screen.getView().append($a.statusbar.getView());
-
   $a.listbox = $a.Listbox.create();
 
   var categories = [
     'material',
-    'common'//,
-    // Rares
-    // Extra rares
-    // Super rares
+    'common',
+    'rare',
+    'superrare'//,
   ];
   _.each(categories, function(category){
     $a.listbox.setPage(category);
@@ -584,6 +705,11 @@ $a.init = function(){
   $a.listbox.switchPage('material');
   $a.listbox.draw();
   $a.screen.getView().append($a.listbox.getView());
+
+  // Must write after Listbox creation
+  $a.statusbar = $a.Statusbar.create();
+  $a.statusbar.draw();
+  $a.screen.getView().append($a.statusbar.getView());
 
 //}}}
 }
