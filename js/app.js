@@ -35,7 +35,7 @@ $f.consoleLog = function(){
             return this.console.log(args.join(' '));
         }
     }
-}
+};
 
 $f.mixin = function(SubClass, superObj, SuperClass){
     var k;
@@ -51,12 +51,12 @@ $f.mixin = function(SubClass, superObj, SuperClass){
             }
         }
     }
-}
+};
 $f.inherit = function(SubClass, superObj, SuperClass){
     SubClass.prototype = superObj;
     SubClass.prototype.__myClass__ = SubClass;
     $f.mixin(SubClass, null, SuperClass);
-}
+};
 
 /**
  * Return coordinates that is created by dividing large square by same small square
@@ -75,21 +75,21 @@ $f.squaring = function(partSize, targetSize, borderWidth) {
         }
     }
     return coords;
-}
+};
 
 $f.argumentsToArray = function(args){
     var arr = [], i;
     for (i = 0; i < args.length; i += 1) { arr.push(args[i]) }
     return arr;
-}
+};
 
 $f.ReceivableOptionsMixin = (function(){
     var cls = function(){
         this.__options = undefined;
-    }
+    };
     cls.prototype.setOptions = function(options){
         this.__options = options || {};
-    }
+    };
     cls.prototype.getOptions = function(/* args */){
         var self = this;
 
@@ -112,10 +112,10 @@ $f.ReceivableOptionsMixin = (function(){
             });
             return extracted;
         }
-    }
+    };
     cls.prototype.getOption = function(key){
         return this.__options[key];
-    }
+    };
     return cls;
 }());
 
@@ -123,7 +123,7 @@ $f.ReceivableOptionsMixin = (function(){
 $d = function(){
     if ($e.debug === false) return;
     return $f.consoleLog.apply(this, arguments);
-}
+};
 
 
 /**
@@ -131,36 +131,36 @@ $d = function(){
  */
 $a = {
 //{{{
-    player: undefined,
-    screen: undefined,
-    listbox: undefined,
+  player: undefined,
+  screen: undefined,
+  listbox: undefined,
 
-    catchError: function(err){
-        $d('error =', err);
-        $d('error.stack =', err.stack);
-    },
-    fontSize: function(px){
-      return px;
-    }//,
+  catchError: function(err){
+    $d('error =', err);
+    $d('error.stack =', err.stack);
+  },
+  fontSize: function(px){
+    return px;
+  }//,
 //}}}
 };
 
 
 $a.Player = (function(){
 //{{{
-    var cls = function(){
-    }
+  var cls = function(){
+  };
 
-    function __INITIALIZE(self){
-    }
+  function __INITIALIZE(self){
+  };
 
-    cls.create = function(){
-        var obj = new this();
-        __INITIALIZE(obj);
-        return obj;
-    }
+  cls.create = function(){
+    var obj = new this();
+    __INITIALIZE(obj);
+    return obj;
+  };
 
-    return cls;
+  return cls;
 //}}}
 }());
 
@@ -174,7 +174,7 @@ $a.Sprite = (function(){
         this._zIndex = 0;
         this._elementId = null;
         this._objectId = undefined;
-    }
+    };
     $f.mixin(cls, new $f.ReceivableOptionsMixin());
 
     // Default settings, now this is used only for initialization
@@ -197,7 +197,7 @@ $a.Sprite = (function(){
 
         __OBJECTS[self._elementId] = self;
         __CURRENT_OBJECT_ID += 1;
-    }
+    };
 
     cls.prototype.draw = function(){
         this._view.css({
@@ -211,26 +211,26 @@ $a.Sprite = (function(){
             height: this.getHeight(),
             zIndex: this._zIndex
         });
-    }
+    };
 
     cls.prototype.drawZIndexOnly = function(zIndex){
         this._zIndex = zIndex;
         this._view.css({ zIndex:zIndex });
-    }
+    };
 
-    cls.prototype.getView = function(){ return this._view }
+    cls.prototype.getView = function(){ return this._view };
 
-    cls.prototype.setPos = function(v){ this._pos = v }
-    cls.prototype.getPos = function(){ return this._pos }
-    cls.prototype.getTop = function(){ return this._pos[0] }
-    cls.prototype.getLeft = function(){ return this._pos[1] }
+    cls.prototype.setPos = function(v){ this._pos = v };
+    cls.prototype.getPos = function(){ return this._pos };
+    cls.prototype.getTop = function(){ return this._pos[0] };
+    cls.prototype.getLeft = function(){ return this._pos[1] };
 
-    cls.prototype.setSize = function(v){ this._size = v }
-    cls.prototype.getSize = function(){ return this._size }
-    cls.prototype.getWidth = function(){ return this._size[0] }
-    cls.prototype.getHeight = function(){ return this._size[1] }
+    cls.prototype.setSize = function(v){ this._size = v };
+    cls.prototype.getSize = function(){ return this._size };
+    cls.prototype.getWidth = function(){ return this._size[0] };
+    cls.prototype.getHeight = function(){ return this._size[1] };
 
-    cls.prototype.setZIndex = function(v){ this._zIndex = v }
+    cls.prototype.setZIndex = function(v){ this._zIndex = v };
 
     cls.getByElementId = function(elementId){
         var obj = __OBJECTS[elementId];
@@ -253,7 +253,7 @@ $a.Sprite = (function(){
 $a.Screen = (function(){
 //{{{
   var cls = function(){
-  }
+  };
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   cls.ZINDEXES = {
@@ -266,13 +266,13 @@ $a.Screen = (function(){
     self._view.css({
       backgroundColor: '#EEE' // Tmp
     });
-  }
+  };
 
   cls.create = function(){
     var obj = $a.Sprite.create.apply(this);
     __INITIALIZE(obj);
     return obj;
-  }
+  };
 
   return cls;
 //}}}
@@ -284,7 +284,7 @@ $a.Statusbar = (function(){
   var cls = function(){
     /** category:view sets */
     this._pageLinkViews = undefined;
-  }
+  };
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   cls.POS = [0, 0];
@@ -335,7 +335,7 @@ $a.Statusbar = (function(){
     _.each(self._pageLinkViews, function(view){
       self._pageLinksView.append(view);
     });
-  }
+  };
 
   cls.prototype._createPageLinkView = function(category, label){
     var self = this;
@@ -353,7 +353,7 @@ $a.Statusbar = (function(){
         self.draw();
       })
     ;
-  }
+  };
 
   cls.prototype.draw = function(){
     $a.Sprite.prototype.draw.apply(this);
@@ -368,13 +368,13 @@ $a.Statusbar = (function(){
       view.removeClass('page_link_current');
     });
     this._pageLinkViews[$a.listbox.getCurrentCategory()].addClass('page_link_current')
-  }
+  };
 
   cls.create = function(){
     var obj = $a.Sprite.create.apply(this);
     __INITIALIZE(obj);
     return obj;
-  }
+  };
 
   return cls;
 //}}}
@@ -386,7 +386,7 @@ $a.Listbox = (function(){
   var cls = function(){
     this._currentCategory = undefined;
     this._pages = {};
-  }
+  };
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   // Calulation:
@@ -401,30 +401,30 @@ $a.Listbox = (function(){
   function __INITIALIZE(self){
     self._view.css({
     });
-  }
+  };
 
   cls.prototype.setPage = function(category){
     var obj = $a.Listpage.create(category)
     this._pages[category] = obj;
     this.getView().append(obj.getView());
-  }
+  };
 
   cls.prototype.switchPage = function(category){
     this._currentCategory = category;
-  }
+  };
 
   cls.prototype.getCurrentCategory = function(){
     return this._currentCategory;
-  }
+  };
 
   cls.prototype.getCurrentPage = function(){
     return this._pages[this._currentCategory];
-  }
+  };
 
   cls.prototype.draw = function(){
     $a.Sprite.prototype.draw.apply(this);
     this.drawSwitchingPage();
-  }
+  };
 
   cls.prototype.drawSwitchingPage = function(){
     _.each(this._pages, function(page){
@@ -433,13 +433,13 @@ $a.Listbox = (function(){
     var page = this.getCurrentPage();
     page.draw();
     page.getView().show();
-  }
+  };
 
   cls.create = function(){
     var obj = $a.Sprite.create.apply(this);
     __INITIALIZE(obj);
     return obj;
-  }
+  };
 
   return cls;
 //}}}
@@ -451,7 +451,7 @@ $a.Listpage = (function(){
   var cls = function(){
     this._category = undefined;
     this._items = [];
-  }
+  };
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   cls.POS = [0, 0];
@@ -467,7 +467,7 @@ $a.Listpage = (function(){
       .css({
       })
     ;
-  }
+  };
 
   cls.prototype._initializeListitems = function(){
     var self = this;
@@ -480,21 +480,21 @@ $a.Listpage = (function(){
       self._items.push(item);
       self.getView().append(item.getView());
     });
-  }
+  };
 
   cls.prototype.draw = function(){
     $a.Sprite.prototype.draw.apply(this);
     _.each(this._items, function(item){
       item.draw();
     });
-  }
+  };
 
   cls.create = function(category){
     var obj = $a.Sprite.create.apply(this);
     obj._category = category;
     __INITIALIZE(obj);
     return obj;
-  }
+  };
 
   return cls;
 //}}}
@@ -506,7 +506,7 @@ $a.Listitem = (function(){
   var cls = function(){
     /** Emoticon || null  */
     this._emoticon = undefined;
-  }
+  };
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   cls.POS = [0, 0];
@@ -546,7 +546,7 @@ $a.Listitem = (function(){
       textAlign: 'center',
       color: '#666'//,
     }).appendTo(self._view);
-  }
+  };
 
   cls.prototype.draw = function(){
     if (this._emoticon === null) return;
@@ -561,14 +561,14 @@ $a.Listitem = (function(){
     };
 
     this.getView().show();
-  }
+  };
 
   cls.create = function(emoticonOrNull){
     var obj = $a.Sprite.create.apply(this);
     obj._emoticon = emoticonOrNull;
     __INITIALIZE(obj);
     return obj;
-  }
+  };
 
   return cls;
 //}}}
@@ -577,105 +577,105 @@ $a.Listitem = (function(){
 
 $a.Emoticons = (function(){
 //{{{
-    var cls = function(){
-      this._data = {};
+  var cls = function(){
+    this._data = {};
+  };
+
+  cls.__RAW_DATA = [
+    // なかぐろ
+    ['material', 1, [], '', '\u30fb'],
+    // 白丸
+    ['material', 2, [], '', '\u309c'],
+    // ^
+    ['material', 3, [], '', '^'],
+    // なき
+    ['material', 4, [], '', 'T'],
+    // 伏し目
+    ['material', 5, [], '', '-'],
+    // きりっ
+    ['material', 6, [], '', '`\u00b4'],
+    // しゅん
+    ['material', 7, [], '', '\u00b4`'],
+    // ターンエー
+    ['material', 11, [], '', '\u2200'],
+    // への字口
+    ['material', 12, [], '', '\u0414'],
+    // ふぐり
+    ['material', 13, [], '', '\u03c9'],
+    // 〜
+    ['material', 14, [], '', '\uff5e'],
+    // ニヤリ
+    ['material', 15, [], '', '\u30fc'],
+    // ノ
+    ['material', 31, [], '', 'ノ'],
+    // ゆびさし
+    ['material', 32, [], '', 'm9'],
+    // ！
+    ['material', 51, [], '', '!'],
+    // 汗
+    ['material', 52, [], '', ';'],
+    // がーん
+    ['material', 53, [], '', '((('],
+    // がくがく
+    ['material', 54, [], '', '\u03a3'],
+    // ぽっ
+    ['material', 55, [], '', '*'],
+
+    // Commons
+    ['common', 101, [1, 11], 'イイ！', '(・∀・)'],
+  ];
+
+  function __INITIALIZE(self){
+    _.each(cls.__RAW_DATA, function(rawData){
+      self._addDataFromRawData(rawData);
+    });
+  };
+
+  cls.prototype._addDataFromRawData = function(rawData){
+    var id = rawData[1].toString();
+    var materialIds = rawData[2].slice();
+    if (id in this._data) {
+      throw new Error('Emoticons._addDataFromRawData: Duplicated id');
     }
+    this._data[id] = {
+      id: id,
+      category: rawData[0],
+      materialIds: materialIds,
+      emoticonName: rawData[3],
+      artText: rawData[4],
+      isFound: (materialIds.length === 0)//,
+    };
+  };
 
-    cls.__RAW_DATA = [
-      // なかぐろ
-      ['material', 1, [], '', '\u30fb'],
-      // 白丸
-      ['material', 2, [], '', '\u309c'],
-      // ^
-      ['material', 3, [], '', '^'],
-      // なき
-      ['material', 4, [], '', 'T'],
-      // 伏し目
-      ['material', 5, [], '', '-'],
-      // きりっ
-      ['material', 6, [], '', '`\u00b4'],
-      // しゅん
-      ['material', 7, [], '', '\u00b4`'],
-      // ターンエー
-      ['material', 11, [], '', '\u2200'],
-      // への字口
-      ['material', 12, [], '', '\u0414'],
-      // ふぐり
-      ['material', 13, [], '', '\u03c9'],
-      // 〜
-      ['material', 14, [], '', '\uff5e'],
-      // ニヤリ
-      ['material', 15, [], '', '\u30fc'],
-      // ノ
-      ['material', 31, [], '', 'ノ'],
-      // ゆびさし
-      ['material', 32, [], '', 'm9'],
-      // ！
-      ['material', 51, [], '', '!'],
-      // 汗
-      ['material', 52, [], '', ';'],
-      // がーん
-      ['material', 53, [], '', '((('],
-      // がくがく
-      ['material', 54, [], '', '\u03a3'],
-      // ぽっ
-      ['material', 55, [], '', '*'],
+  cls.prototype.getDataList = function(conditions){
+    var category = conditions.category || null;
 
-      // Commons
-      ['common', 101, [1, 11], 'イイ！', '(・∀・)'],
-    ];
-
-    function __INITIALIZE(self){
-      _.each(cls.__RAW_DATA, function(rawData){
-        self._addDataFromRawData(rawData);
-      });
-    }
-
-    cls.prototype._addDataFromRawData = function(rawData){
-      var id = rawData[1].toString();
-      var materialIds = rawData[2].slice();
-      if (id in this._data) {
-        throw new Error('Emoticons._addDataFromRawData: Duplicated id');
+    var filtered = _.filter(this._data, function(dat, id){
+      if (category !== null && category !== dat.category) {
+        return false;
       }
-      this._data[id] = {
-        id: id,
-        category: rawData[0],
-        materialIds: materialIds,
-        emoticonName: rawData[3],
-        artText: rawData[4],
-        isFound: (materialIds.length === 0)//,
-      };
-    }
+      return true;
+    });
+    return _.map(filtered, function(dat){
+      return dat;
+    }).sort(function(a, b){
+      return parseInt(a.id, 10) - parseInt(b.id, 10);
+    });
+  };
 
-    cls.prototype.getDataList = function(conditions){
-      var category = conditions.category || null;
+  cls.prototype.getNotFoundCount = function(){
+    return _.filter(this._data, function(dat){
+      return dat.isFound === false;
+    }).length;
+  };
 
-      var filtered = _.filter(this._data, function(dat, id){
-        if (category !== null && category !== dat.category) {
-          return false;
-        }
-        return true;
-      });
-      return _.map(filtered, function(dat){
-        return dat;
-      }).sort(function(a, b){
-        return parseInt(a.id) - parseInt(b.id);
-      });
-    }
+  cls.create = function(){
+      var obj = new this();
+      __INITIALIZE(obj);
+      return obj;
+  };
 
-    cls.prototype.getNotFoundCount = function(){
-      return _.filter(this._data, function(dat){
-        return dat.isFound === false;
-      }).length;
-    }
-
-    cls.create = function(){
-        var obj = new this();
-        __INITIALIZE(obj);
-        return obj;
-    }
-
-    return cls;
+  return cls;
 //}}}
 }());
 
