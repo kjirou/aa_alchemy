@@ -305,36 +305,51 @@ $a.Statusbar = (function(){
 $a.Listbox = (function(){
 //{{{
   var cls = function(){
+    this._currentCategory = undefined;
     this._pages = {};
   }
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   // Calulation:
-  //   Max size = 465 x 465(496 - Startusbar 34)
-  //   64 * 6 + 10 * 5 = 434
-  //   (465 - 434) / 2 = 15.5(top or left)
-  //   top = 15.5 + 34 = 49.5
-  //   left = 15.5
-  cls.POS = [49, 15];
-  cls.SIZE = [434, 434]
+  //   Max size = 465 x 465(496 - Startusbar)
+  //   80 * 5 + 8 * 4 = 432
+  //   (465 - 432) / 2 = 16.5
+  //   top = 16.5 + 34 = 50.5
+  //   left = 16.5
+  cls.POS = [50, 16];
+  cls.SIZE = [432, 432]
 
   function __INITIALIZE(self){
     self._view.css({
     });
   }
 
-  cls.prototype.setPage = function(pageKey, data){
-    var obj = $a.Listpage.create(data)
-    this._pages[pageKey] = obj;
+  cls.prototype.setPage = function(category){
+    var obj = $a.Listpage.create(category)
+    this._pages[category] = obj;
     this.getView().append(obj.getView());
-    obj.draw();
   }
 
-  cls.prototype.switchPage = function(pageKey){
-    _.each(this._pages, function(page, pageKey){
+  cls.prototype.switchPage = function(category){
+    this._currentCategory = category;
+  }
+
+  cls.prototype.getCurrentPage = function(){
+    return this._pages[this._currentCategory];
+  }
+
+  cls.prototype.draw = function(){
+    $a.Sprite.prototype.draw.apply(this);
+    this.drawSwitchingPage();
+  }
+
+  cls.prototype.drawSwitchingPage = function(){
+    _.each(this._pages, function(page){
       page.getView().hide();
     })
-    this._pages[pageKey].getView().show();
+    var page = this.getCurrentPage();
+    page.draw();
+    page.getView().show();
   }
 
   cls.create = function(){
@@ -351,13 +366,14 @@ $a.Listbox = (function(){
 $a.Listpage = (function(){
 //{{{
   var cls = function(){
+    this._category = undefined;
     this._items = [];
   }
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   cls.POS = [0, 0];
   cls.SIZE = $a.Listbox.SIZE.slice();
-  cls.ITEM_COUNT = 36;
+  cls.ITEM_COUNT = 25;
 
   function __INITIALIZE(self){
 
@@ -372,19 +388,27 @@ $a.Listpage = (function(){
 
   cls.prototype._initializeListitems = function(){
     var self = this;
-    var positions = $f.squaring($a.Listitem.SIZE, this.getSize(), 10);
+    var emoticons = $a.emoticons.getDataList({ category:this._category });
+    var positions = $f.squaring($a.Listitem.SIZE, this.getSize(), 8);
     _.times(cls.ITEM_COUNT, function(i){
-      var item = $a.Listitem.create();
+      var emoticon = emoticons[i] || null;
+      var item = $a.Listitem.create(emoticon);
       item.setPos(positions[i]);
       self._items.push(item);
       self.getView().append(item.getView());
-      item.draw();
-      item.getView().show();
     });
   }
 
-  cls.create = function(){
+  cls.prototype.draw = function(){
+    $a.Sprite.prototype.draw.apply(this);
+    _.each(this._items, function(item){
+      item.draw();
+    });
+  }
+
+  cls.create = function(category){
     var obj = $a.Sprite.create.apply(this);
+    obj._category = category;
     __INITIALIZE(obj);
     return obj;
   }
@@ -397,23 +421,36 @@ $a.Listpage = (function(){
 $a.Listitem = (function(){
 //{{{
   var cls = function(){
+    /** Emoticon || null  */
+    this._emoticon = undefined;
   }
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   cls.POS = [0, 0];
-  cls.SIZE = [64, 64]
+  cls.SIZE = [80, 80]
 
   function __INITIALIZE(self){
     self._view
       .hide()
       .css({
-        backgroundColor: '#FFF'
+        backgroundColor: '#FFF',
+        cursor: 'pointer'
       })
     ;
   }
 
-  cls.create = function(){
+  cls.prototype.draw = function(){
+    if (this._emoticon === null) return;
+    $a.Sprite.prototype.draw.apply(this);
+
+
+
+    this.getView().show();
+  }
+
+  cls.create = function(emoticonOrNull){
     var obj = $a.Sprite.create.apply(this);
+    obj._emoticon = emoticonOrNull;
     __INITIALIZE(obj);
     return obj;
   }
@@ -423,10 +460,71 @@ $a.Listitem = (function(){
 }());
 
 
+$a.Emoticons = (function(){
+//{{{
+    var cls = function(){
+      this._data = {};
+    }
+
+    cls.__RAW_DATA = [
+      ['material', 1, [], 'なかぐろ', '\u30fb'],
+      ['material', 2, [], 'ターンエー', '\u2200']//,
+    ];
+
+    function __INITIALIZE(self){
+      _.each(cls.__RAW_DATA, function(rawData){
+        self._addDataFromRawData(rawData);
+      });
+    }
+
+    cls.prototype._addDataFromRawData = function(rawData){
+      var id = rawData[1].toString();
+      var materialIds = rawData[2].slice();
+      if (id in this._data) {
+        throw new Error('Emoticons._addDataFromRawData: Duplicated id');
+      }
+      this._data[id] = {
+        id: id,
+        category: rawData[0],
+        materialIds: materialIds,
+        emoticonName: rawData[3],
+        emoticonText: rawData[4],
+        isFound: (materialIds.length === 0)//,
+      };
+    }
+
+    cls.prototype.getDataList = function(conditions){
+      var category = conditions.category || null;
+
+      var filtered = _.filter(this._data, function(dat, id){
+        if (category !== null && category !== dat.category) {
+          return false;
+        }
+        return true;
+      });
+      return _.map(filtered, function(dat){
+        return dat;
+      }).sort(function(a, b){
+        return parseInt(a.id) - parseInt(b.id);
+      });
+    }
+
+    cls.create = function(){
+        var obj = new this();
+        __INITIALIZE(obj);
+        return obj;
+    }
+
+    return cls;
+//}}}
+}());
+
+
 $a.init = function(){
 //{{{
 
   $a.player = $a.Player.create();
+  $a.emoticons = $a.Emoticons.create();
 
   $a.screen = $a.Screen.create();
   $a.screen.draw();
@@ -438,17 +536,16 @@ $a.init = function(){
 
   $a.listbox = $a.Listbox.create();
 
-  // Materials
-  $a.listbox.setPage('material', {
+  var categories = [
+    'material',
+    'common'//,
+    // Rares
+    // Extra rares
+    // Super rares
+  ];
+  _.each(categories, function(category){
+    $a.listbox.setPage(category);
   });
-
-  // Commons
-  $a.listbox.setPage('common', {
-  });
-
-  // Rares
-  // Extra rares
-  // Super rares
 
   $a.listbox.switchPage('material');
   $a.listbox.draw();
