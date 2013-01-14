@@ -101,6 +101,17 @@ $f.calculateMarginTopForCenteringMultilineText = function(
   return ~~((containerHeight - textHeight) / 2);
 }
 
+/** For jQuery.Deferred.then */
+$f.wait = function(ms){
+  return function(){
+    var d = $.Deferred();
+    setTimeout(function(){
+      d.resolve();
+    }, ms);
+    return d;
+  }
+}
+
 $f.argumentsToArray = function(args){
     var arr = [], i;
     for (i = 0; i < args.length; i += 1) { arr.push(args[i]) }
@@ -413,6 +424,7 @@ $a.Statusbar = (function(){
     matched.isFound = true;
     $a.emoticons.resetSelects();
 
+    $a.sounds.play('mix');
     $a.mixer.runMixing(matched.key);
 
     self.draw();
@@ -761,21 +773,18 @@ $a.Mixer = (function(){
     );
 
     return $.Deferred().resolve().then(function(){
-      return self.getView().fadeIn(1000);
-    }).then(function(){
-      return self._rarityView.fadeIn();
-    }).then(function(){
-      return self._artTextView.fadeIn(1000);
-    }).then(function(){
-      return self._nameView.fadeIn();
-    }).then(function(){
-      var d = $.Deferred();
-      setTimeout(function(){
-        self.getView().fadeOut(1000, function(){
-          d.resolve();
-        });
-      }, 2000);
-      return d;
+      return self.getView().fadeIn(2000);
+    }).then($f.wait(1000)).then(function(){
+      $a.sounds.play('don');
+      return self._rarityView.fadeIn(500);
+    }).then($f.wait(1000)).then(function(){
+      $a.sounds.play('don');
+      return self._nameView.fadeIn(500);
+    }).then($f.wait(1000)).then(function(){
+      $a.sounds.play('don');
+      return self._artTextView.fadeIn(500);
+    }).then($f.wait(1000)).then(function(){
+      return self.getView().fadeOut(2000);
     }).then(function(){
       self._rarityView.hide();
       self._artTextView.hide();
@@ -810,7 +819,7 @@ $a.Sounds = (function(){
     return cls.PLAYER_ID_PREFIX + mediaKey;
   }
 
-  cls.prototype.setMedia = function(containerId, mediaKey, url){
+  cls.prototype.setMedia = function(containerId, mediaKey, mediaType, url){
     var pid = this._createPlayerID(mediaKey);
     var jPlayer = $('<a />')
       .hide()
@@ -819,9 +828,8 @@ $a.Sounds = (function(){
         swfPath: cls.SWF_PATH,
         ready: function(){
           var mediaData = {};
-          $(this).jPlayer('setMedia', {
-            mp3: url
-          });
+          mediaData[mediaType] = url;
+          $(this).jPlayer('setMedia', mediaData);
         }//,
       })
       .appendTo('#' + containerId)
@@ -865,7 +873,7 @@ $a.Emoticons = (function(){
     ['material', 'T', [], '', 'T'],
     ['material', '-', [], '', '-'],
     ['material', 'kiri', [], '', '`\u00b4'],
-    ['material', 'shun', [], '', '\u00b4`'],
+    ['material', 'syun', [], '', '\u00b4`'],
     ['material', 'turna', [], '', '\u2200'],
     ['material', 'anguri', [], '', '\u0414'],
     ['material', 'huguri', [], '', '\u03c9'],
@@ -883,6 +891,8 @@ $a.Emoticons = (function(){
     // Commons
     ['common', 'ii', ['nakaguro', 'turna'], 'イイ！', '(・∀・)'],
     ['common', 'ahya', ['shiromaru', 'turna'], 'アヒャ', '(ﾟ∀ﾟ)'],
+    ['common', 'syakin', ['kiri', 'huguri'], 'シャキーン', '(｀･ω･´)'],
+    ['common', 'syobon', ['syun', 'huguri'], 'ショボーン', '(´･ω･`)'],
 
     // Rares
     ['rare', 'joruju', ['shiromaru', 'turna', 'tsu'], 'ジョルジュ長岡',
@@ -1026,8 +1036,12 @@ $a.init = function(){
 $(document).ready(function(){
   $a.init();
 
-  $a.sounds.setMedia('game_container', 'decide',
+  $a.sounds.setMedia('game_container', 'decide', 'mp3',
     'http://code.kjirou.net/js/app/jsdoit/aa_alchemy/sounds/decide--button-3--b128-trim.mp3');
-  $a.sounds.setMedia('game_container', 'cancel',
+  $a.sounds.setMedia('game_container', 'cancel', 'mp3',
     'http://code.kjirou.net/js/app/jsdoit/aa_alchemy/sounds/cancel--button-47--b128-trim-speedup.mp3');
+  $a.sounds.setMedia('game_container', 'mix', 'mp3',
+    'http://code.kjirou.net/js/app/jsdoit/aa_alchemy/sounds/power14.mp3');
+  $a.sounds.setMedia('game_container', 'don', 'mp3',
+    'http://code.kjirou.net/js/app/jsdoit/aa_alchemy/sounds/crash10.mp3');
 });
