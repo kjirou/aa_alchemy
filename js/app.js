@@ -661,11 +661,62 @@ $a.Listitem = (function(){
 }());
 
 
+$a.Sounds = (function(){
+//{{{
+  var cls = function(){
+    this._players = {};
+  }
+
+  cls.SWF_PATH = 'http://code.kjirou.net/js/app/jsdoit/aa_alchemy/jQuery.jPlayer.2.1.0.source';
+  cls.PLAYER_ID_PREFIX = 'jquery_jplayer-';
+
+  function __INITIALIZE(self){
+  }
+
+  cls.prototype._createPlayerID = function(mediaKey){
+    return cls.PLAYER_ID_PREFIX + mediaKey;
+  }
+
+  cls.prototype.setMedia = function(containerId, mediaKey, url){
+    var pid = this._createPlayerID(mediaKey);
+    var jPlayer = $('<a />')
+      .hide()
+      .attr('id', pid)
+      .jPlayer({
+        swfPath: cls.SWF_PATH,
+        ready: function(){
+          var mediaData = {};
+          $(this).jPlayer('setMedia', {
+            mp3: url
+          });
+        }//,
+      })
+      .appendTo('#' + containerId)
+    ;
+    $(containerId).append(jPlayer);
+  }
+
+  cls.prototype.play = function(mediaKey){
+    var pid = this._createPlayerID(mediaKey);
+    $('#' + pid).jPlayer('play');
+  }
+
+  cls.create = function(){
+      var obj = new this();
+      __INITIALIZE(obj);
+      return obj;
+  }
+
+  return cls;
+//}}}
+}());
+
+
 $a.Emoticons = (function(){
 //{{{
   var cls = function(){
     this._data = {};
-  };
+  }
 
   cls.__RAW_DATA = [
     ['material', 'nakaguro', [], '', '\u30fb'],
@@ -793,6 +844,7 @@ $a.init = function(){
 
   $a.player = $a.Player.create();
   $a.emoticons = $a.Emoticons.create();
+  $a.sounds = $a.Sounds.create();
 
   $a.screen = $a.Screen.create();
   $a.screen.draw();
@@ -825,4 +877,9 @@ $a.init = function(){
 
 $(document).ready(function(){
   $a.init();
+
+  $a.sounds.setMedia('game_container', 'decide',
+    'http://code.kjirou.net/js/app/jsdoit/aa_alchemy/sounds/decide--button-3--b128-trim.mp3');
+  $a.sounds.setMedia('game_container', 'cancel',
+    'http://code.kjirou.net/js/app/jsdoit/aa_alchemy/sounds/cancel--button-47--b128-trim-speedup.mp3');
 });
