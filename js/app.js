@@ -90,6 +90,17 @@ $f.nl2br = function(str){
   return str.replace(/(?:\r\n|\n|\r)/g, '<br />');
 }
 
+$f.countLine = function(text){
+  text = text.replace(/\r\n|\r/g, '\n');  // Normalize new line characters
+  return text.split('\n').length;
+}
+
+$f.calculateMarginTopForCenteringMultilineText = function(
+  lineCount, containerHeight, fontSize){
+  var textHeight = fontSize * lineCount;
+  return ~~((containerHeight - textHeight) / 2);
+}
+
 $f.argumentsToArray = function(args){
     var arr = [], i;
     for (i = 0; i < args.length; i += 1) { arr.push(args[i]) }
@@ -551,6 +562,7 @@ $a.Listitem = (function(){
     TITLE: 10,
     ART_TEXT: 1
   };
+  cls.ART_TEXT_FONT_SIZE = $a.fontSize(14);
 
   function __INITIALIZE(self){
     self._view
@@ -576,11 +588,12 @@ $a.Listitem = (function(){
 
     self._artTextView = $('<div />').css({
       width: '100%',
-      height: cls.SIZE[1] + 'px',
-      lineHeight: 1,
+      lineHeight: 1.0,
       zIndex: cls.ZINDEXES.ART_TEXT,
-      fontSize: $a.fontSize(14) + 'px',
+      fontSize: cls.ART_TEXT_FONT_SIZE + 'px',
       textAlign: 'center',
+      whiteSpace: 'nowrap',
+      //overflow: 'hidden',  // 入れると上の方が欠けてしまう
       color: '#000'//,
     }).appendTo(self._view);
 
@@ -598,15 +611,23 @@ $a.Listitem = (function(){
   };
 
   cls.prototype.draw = function(){
+
     if (this._emoticon === null) return;
+
     $a.Sprite.prototype.draw.apply(this);
 
+    // Draw art with centering valign
+    var artText = this._emoticon.artText;
+    if (this._emoticon.isFound === false) artText = '？';
+    var marginTop = $f.calculateMarginTopForCenteringMultilineText(
+      $f.countLine(artText), cls.SIZE[1], cls.ART_TEXT_FONT_SIZE
+    );
+    this._artTextView.html($f.nl2br($f.escapeHTML(artText)))
+      .css({ marginTop: marginTop });
+
     if (this._emoticon.isFound) {
-      this._artTextView.html($f.nl2br($f.escapeHTML(this._emoticon.artText)));
-      this._titleView.text(this._emoticon.emoticonName);
-      this._titleView.show();
+      this._titleView.text(this._emoticon.emoticonName).show();
     } else {
-      this._artTextView.text('\uff1f');
       this._titleView.hide();
     };
 
