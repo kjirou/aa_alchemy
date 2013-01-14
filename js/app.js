@@ -159,6 +159,7 @@ $a = {
   screen: undefined,
   statusbar: undefined,
   listbox: undefined,
+  mixer: undefined,
 
   catchError: function(err){
     $d('error =', err);
@@ -282,6 +283,7 @@ $a.Screen = (function(){
   $f.inherit(cls, new $a.Sprite(), $a.Sprite);
 
   cls.ZINDEXES = {
+    MIXER: 10//,
   };
 
   cls.POS = [0, 0];
@@ -289,7 +291,7 @@ $a.Screen = (function(){
 
   function __INITIALIZE(self){
     self._view.css({
-      backgroundColor: '#EEE' // Tmp
+      backgroundColor: '#EEE'
     });
   };
 
@@ -668,6 +670,125 @@ $a.Listitem = (function(){
 }());
 
 
+$a.Mixer = (function(){
+//{{{
+  var cls = function(){
+  };
+  $f.inherit(cls, new $a.Sprite(), $a.Sprite);
+
+  cls.POS = [0, 0];
+  cls.SIZE = $a.Screen.SIZE.slice();
+  cls.ZINDEXES = {
+    RARITY_AND_NAME: 10,
+    ART_TEXT: 1
+  }
+  cls.ART_TEXT_FONT_SIZE = $a.fontSize(16);
+
+  function __INITIALIZE(self){
+    self.setZIndex($a.Screen.ZINDEXES.MIXER);
+    self._view.css({
+      backgroundColor: '#FFF'
+    }).hide();
+
+    self._rarityView = $('<div />')
+      .hide()
+      .css({
+        position: 'absolute',
+        top: 132,
+        width: '100%',
+        height: 32,
+        lineHeight: '21px',
+        fontSize: $a.fontSize(21),
+        fontWeight: 'bold',
+        zIndex: cls.ZINDEXES.RARITY_AND_NAME,
+        textAlign: 'center',
+        color: '#000'//,
+      })
+      .appendTo(self._view)
+    ;
+
+    self._artTextView = $('<div />')
+      .hide()
+      .css({
+        width: '100%',
+        fontSize: cls.ART_TEXT_FONT_SIZE,
+        zIndex: cls.ZINDEXES.ART_TEXT,
+        textAlign: 'center',
+        color: '#000'//,
+      })
+      .appendTo(self._view)
+    ;
+
+    self._nameView = $('<div />')
+      .hide()
+      .css({
+        position: 'absolute',
+        top: 364,
+        width: '100%',
+        height: 32,
+        lineHeight: '32px',
+        fontSize: $a.fontSize(21),
+        fontWeight: 'bold',
+        zIndex: cls.ZINDEXES.RARITY_AND_NAME,
+        textAlign: 'center',
+        color: '#000'//,
+      })
+      .appendTo(self._view)
+    ;
+  };
+
+  cls.prototype.runMixing = function(emoticonKey){
+    var self = this;
+    var emot = $a.emoticons.getData(emoticonKey);
+
+    // Prepare drawing
+    this._rarityView.text('コモン');
+    this._nameView.text(emot.emoticonName);
+    var marginTop = $f.calculateMarginTopForCenteringMultilineText(
+      $f.countLine(emot.artText),
+      cls.SIZE[1],
+      cls.ART_TEXT_FONT_SIZE
+    );
+    this._artTextView.css({
+      marginTop: marginTop
+    }).html(
+      $f.nl2br($f.escapeHTML(emot.artText))
+    );
+
+    $.Deferred().resolve().then(function(){
+      return self.getView().fadeIn(1000);
+    }).then(function(){
+      return self._rarityView.fadeIn();
+    }).then(function(){
+      return self._nameView.fadeIn();
+    }).then(function(){
+      return self._artTextView.fadeIn(1000);
+    }).then(function(){
+      var d = $.Deferred();
+      setTimeout(function(){
+        self.getView().fadeOut(1000, function(){
+          d.resolve();
+        });
+      }, 2000);
+      return d;
+    }).then(function(){
+      self._rarityView.hide();
+      self._artTextView.hide();
+      self._nameView.hide();
+    });
+  }
+
+  cls.create = function(){
+    var obj = $a.Sprite.create.apply(this);
+    __INITIALIZE(obj);
+    return obj;
+  };
+
+  return cls;
+//}}}
+}());
+
+
 $a.Sounds = (function(){
 //{{{
   var cls = function(){
@@ -799,6 +920,10 @@ $a.Emoticons = (function(){
     });
   }
 
+  cls.prototype.getData = function(emoticonKey){
+    return this._data[emoticonKey];
+  }
+
   cls.prototype.getNotFoundCount = function(){
     return _.filter(this._data, function(dat){
       return dat.isFound === false;
@@ -877,6 +1002,10 @@ $a.init = function(){
   $a.statusbar = $a.Statusbar.create();
   $a.statusbar.draw();
   $a.screen.getView().append($a.statusbar.getView());
+
+  $a.mixer = $a.Mixer.create();
+  $a.mixer.draw();
+  $a.screen.getView().append($a.mixer.getView());
 
 //}}}
 }
