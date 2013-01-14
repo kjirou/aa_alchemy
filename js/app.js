@@ -642,8 +642,15 @@ $a.Listitem = (function(){
 
   function __ONMOUSEDOWN(evt){
     var self = evt.data.self;
-    if (self._emoticon.isSelectable === false) return false;
+    if (self._emoticon.isSelectable === false) {
+      return false;
+    }
     self._emoticon.isSelected = !self._emoticon.isSelected;
+    if (self._emoticon.isSelected) {
+      $a.sounds.play('decide');
+    } else {
+      $a.sounds.play('cancel');
+    }
     self.draw();
     $a.statusbar.draw();
     return false;
