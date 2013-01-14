@@ -773,7 +773,7 @@ $a.Mixer = (function(){
     );
 
     return $.Deferred().resolve().then(function(){
-      return self.getView().fadeIn(2000);
+      return self.getView().fadeIn(1500);
     }).then($f.wait(1000)).then(function(){
       $a.sounds.play('don');
       return self._rarityView.fadeIn(500);
@@ -784,7 +784,7 @@ $a.Mixer = (function(){
       $a.sounds.play('don');
       return self._artTextView.fadeIn(500);
     }).then($f.wait(1000)).then(function(){
-      return self.getView().fadeOut(2000);
+      return self.getView().fadeOut(1500);
     }).then(function(){
       self._rarityView.hide();
       self._artTextView.hide();
@@ -889,14 +889,20 @@ $a.Emoticons = (function(){
     ['material', '*', [], '', '*'],
 
     // Commons
+    //   Must match more than 2 parts
     ['common', 'ii', ['nakaguro', 'turna'], 'イイ！', '(・∀・)'],
     ['common', 'ahya', ['shiromaru', 'turna'], 'アヒャ', '(ﾟ∀ﾟ)'],
-    ['common', 'syakin', ['kiri', 'huguri'], 'シャキーン', '(｀･ω･´)'],
-    ['common', 'syobon', ['syun', 'huguri'], 'ショボーン', '(´･ω･`)'],
+    ['common', 'syakin', ['kiri', 'nakaguro', 'huguri'], 'シャキーン', '(｀･ω･´)'],
+    ['common', 'syobon', ['syun', 'shiromaru', 'huguri'], 'ショボーン', '(´･ω･`)'],
+    ['common', 'pugya', ['^', 'anguri', 'm9'], 'プギャー', 'm9(^Д^)'],
 
     // Rares
+    //   Must match more than 3 parts
     ['rare', 'joruju', ['shiromaru', 'turna', 'tsu'], 'ジョルジュ長岡',
       '　 _ 　∩\n(　ﾟ∀ﾟ)彡\n　⊂彡'],
+
+    // Super rares
+    //   Must match all parts
   ];
 
   function __INITIALIZE(self){
@@ -963,16 +969,38 @@ $a.Emoticons = (function(){
 
   cls.prototype.match = function(){
     var selectedKeys = this._getSelectedKeys();
-    var matches = _.filter(this.getDataList(), function(data){
+    var matches = _.filter(this.getDataList(), function(emot){
+
+      if (emot.isFound) return false;
+
+      var needCount = 2;
+      if (emot.category === 'rare') {
+        needCount = 3;
+      } else if (emot.category === 'superrare') {
+        needCount = emot.materials.length;
+      };
+
+      var okCount = 0;
+      var ngCount = 0;
+      _.each(selectedKeys, function(selectedKey){
+        if (_.indexOf(emot.materials, selectedKey) >= 0) {
+          okCount += 1;
+        } else {
+          ngCount += 1;
+        }
+      });
+
       if (
-        data.isFound === false &&
-        _.isEqual(selectedKeys.sort(), data.materials.sort())
+        ngCount === 0 &&
+        okCount >= needCount
       ) {
         return true;
       }
       return false;
     });
     if (matches.length === 0) return null;
+    // If plural emoticons are matched,
+    //   then the first (in __RAW_DATA) it is selected
     return matches[0];
   }
 
