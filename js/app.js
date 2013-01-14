@@ -412,6 +412,9 @@ $a.Statusbar = (function(){
 
     matched.isFound = true;
     $a.emoticons.resetSelects();
+
+    $a.mixer.runMixing(matched.key);
+
     self.draw();
     $a.listbox.getCurrentPage().draw();
 
@@ -742,8 +745,10 @@ $a.Mixer = (function(){
     var emot = $a.emoticons.getData(emoticonKey);
 
     // Prepare drawing
-    this._rarityView.text('コモン');
-    this._nameView.text(emot.emoticonName);
+    this._rarityView.text(
+      $a.Emoticons.getCategoryLabel(emot.category)
+    );
+    this._nameView.text('『' + emot.emoticonName + '』');
     var marginTop = $f.calculateMarginTopForCenteringMultilineText(
       $f.countLine(emot.artText),
       cls.SIZE[1],
@@ -755,14 +760,14 @@ $a.Mixer = (function(){
       $f.nl2br($f.escapeHTML(emot.artText))
     );
 
-    $.Deferred().resolve().then(function(){
+    return $.Deferred().resolve().then(function(){
       return self.getView().fadeIn(1000);
     }).then(function(){
       return self._rarityView.fadeIn();
     }).then(function(){
-      return self._nameView.fadeIn();
-    }).then(function(){
       return self._artTextView.fadeIn(1000);
+    }).then(function(){
+      return self._nameView.fadeIn();
     }).then(function(){
       var d = $.Deferred();
       setTimeout(function(){
@@ -845,6 +850,13 @@ $a.Emoticons = (function(){
   var cls = function(){
     this._data = {};
   }
+
+  cls.CATEGORIES = [
+    ['material', '素材'],
+    ['common', 'コモン'],
+    ['rare', 'レア'],
+    ['superrare', '超レア']//,
+  ];
 
   cls.__RAW_DATA = [
     ['material', 'nakaguro', [], '', '\u30fb'],
@@ -960,6 +972,12 @@ $a.Emoticons = (function(){
     });
   }
 
+  cls.getCategoryLabel = function(category){
+    return _.find(cls.CATEGORIES, function(pair){
+      if (category === pair[0]) return true;
+    })[1];
+  }
+
   cls.create = function(){
       var obj = new this();
       __INITIALIZE(obj);
@@ -984,14 +1002,8 @@ $a.init = function(){
 
   $a.listbox = $a.Listbox.create();
 
-  var categories = [
-    'material',
-    'common',
-    'rare',
-    'superrare'//,
-  ];
-  _.each(categories, function(category){
-    $a.listbox.setPage(category);
+  _.each($a.Emoticons.CATEGORIES, function(dataSet){
+    $a.listbox.setPage(dataSet[0]);
   });
 
   $a.listbox.switchPage('material');
