@@ -877,6 +877,7 @@ $a.Emoticons = (function(){
     ['material', 'a', [], '', 'Ａ'],
     ['material', 'anguri', [], '', '\u0414'],
     ['material', 'huguri', [], '', '\u03c9'],
+    ['material', 'o', [], '', 'o'],
     ['material', 'niya', [], '', '\u30fc'],
     ['material', 'no', [], '', 'ノ'],
     ['material', 'tsu', [], '', 'つ'],
@@ -895,7 +896,6 @@ $a.Emoticons = (function(){
     ['common', 'ii', ['nakaguro', 'turna'], 'ｲｲ!', '(・∀・)'],
     ['common', 'ikunai', ['nakaguro', 'a'], 'ｲｸﾅｲ!', '(・A ・)'],
     ['common', 'iikunai', ['nakaguro', 'turna', 'anguri'], 'ｲｲ ｸﾅｲ', '(･∀･д･)'],
-    ['common', 'kita', ['shiromaru', 'turna', '!'], 'ｷﾀ━!', 'ｷﾀ━(ﾟ∀ﾟ)━!'],
     ['common', 'syakin', ['kiri', 'nakaguro', 'huguri'], 'ｼｬｷ-ﾝ', '(｀･ω･´)'],
     ['common', 'syobon', ['syun', 'nakaguro', 'huguri'], 'ｼｮﾎﾞ-ﾝ', '(´･ω･`)'],
     ['common', 'ahya', ['shiromaru', 'turna'], 'ｱﾋｬ', '(ﾟ∀ﾟ)'],
@@ -909,6 +909,8 @@ $a.Emoticons = (function(){
     ['common', 'gaaan', ['shiromaru', 'anguri', 'gan'], 'ｶﾞｰﾝ', 'Σ(ﾟДﾟ)'],
     ['common', 'pugya', ['^', 'anguri', 'm9'], 'ﾌﾟｷﾞｬ-', 'm9(^Д^)'],
     ['common', 'niyari', ['-', 'niya'], 'ﾆﾔﾘ', '(￣ー￣)'],
+    ['common', 'kita', ['shiromaru', 'turna', '!'], 'ｷﾀ━!', 'ｷﾀ━(ﾟ∀ﾟ)━!'],
+    ['common', 'owata', ['^', 'o', 'no'], 'ｵﾜﾀ', '＼(^o^)／'],
     ['common', 'zusa-', ['shiromaru', 'anguri', 'tsu'], 'ｽﾞｻ-', 'c⌒っﾟДﾟ)っ'],
     ['common', 'ase', ['^', ';'], '(汗)', '(^_^;)'],
 
@@ -1017,7 +1019,10 @@ $a.Emoticons = (function(){
         return true;
       }
       return false;
+    }).sort(function(a, b){
+      return a.order - b.order;
     });
+
     if (matches.length === 0) return null;
     // If plural emoticons are matched,
     //   then the first (in __RAW_DATA) it is selected
